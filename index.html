@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orologio Animato</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            overflow-y: auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 5em; /* Ingrandito */
+            margin: 20px 0;
+        }
+
+        h2 {
+            font-size: 3em; /* Ingrandito */
+            margin-bottom: 20px;
+        }
+
+        .clock {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .digital-clock {
+            font-size: 4em; /* Ingrandito */
+            color: #00FFFF;
+            text-shadow: 0 0 15px #00FFFF;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .timer-container {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .timer-buttons {
+            margin: 10px;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 20px; /* Ingrandito */
+            background-color: #444;
+            margin-top: 10px;
+        }
+
+        .timer-bar span {
+            display: block;
+            height: 100%;
+            background-color: #00FFFF;
+        }
+
+        .countdown {
+            font-size: 3em; /* Ingrandito */
+            color: #00FFFF;
+            text-shadow: 0 0 15px #00FFFF;
+            margin-top: 20px;
+        }
+
+        .instructions {
+            margin-top: 20px;
+            font-size: 1.5em; /* Ingrandito */
+            text-align: center;
+            color: #00FFFF;
+        }
+
+        #subtitle, #author, #institution, #date {
+            font-size: 1.5em; /* Ingrandito */
+            margin: 5px 0;
+        }
+
+        .container {
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        input[type="number"] {
+            font-size: 1.5em; /* Dimensioni originali */
+            padding: 5px;
+            width: 120px;
+            text-align: center;
+        }
+
+        .form-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Ora Esatta</h1>
+    <h2 id="subtitle">Verifica di Matematica</h2>
+    <p id="author">Prof: Bertazzo</p>
+    <p id="institution">IIS JdM</p>
+    <p id="date"></p>
+
+    <div class="clock">
+        <div class="digital-clock" id="digitalClock"></div>
+    </div>
+
+    <div class="timer-container">
+        <div>
+            <button id="playButton">Play</button>
+            <button id="pauseButton">Pausa</button>
+            <button id="stopButton">Stop</button>
+        </div>
+
+        <div class="timer-bar" id="timerBar">
+            <span id="timerFill"></span>
+        </div>
+
+        <div class="countdown" id="countdownDisplay">00:00:000</div>
+    </div>
+
+    <div class="form-container">
+        <label for="timerInput">Imposta timer (in minuti):</label>
+        <input type="number" id="timerInput" value="1" min="1">
+    </div>
+
+    <div class="instructions" id="instructions">
+        Istruzioni: Usa i tasti per avviare, mettere in pausa o fermare il timer.
+    </div>
+</div>
+
+<script>
+    // Impostazione dell'orologio digitale
+    function updateDigitalClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById("digitalClock").textContent = `${hours}:${minutes}:${seconds}`;
+    }
+
+    // Funzione per aggiornare la data
+    function updateDate() {
+        const now = new Date();
+        const days = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"];
+        const months = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+        const dayOfWeek = days[now.getDay()];
+        const day = now.getDate();
+        const month = months[now.getMonth()];
+        const year = now.getFullYear();
+        document.getElementById("date").textContent = `${dayOfWeek}, ${day} ${month} ${year}`;
+    }
+
+    // Timer
+    let timerInterval;
+    let timeLeft = 60;  // Tempo iniziale (in secondi)
+    let lastUpdate = Date.now();  // Per calcolare i millisecondi
+    const timerBar = document.getElementById("timerBar");
+    const timerFill = document.getElementById("timerFill");
+    const countdownDisplay = document.getElementById("countdownDisplay");
+
+    // Funzione per aggiornare la durata del timer in base al valore inserito (in minuti)
+    function updateTimerDuration() {
+        const minutes = parseInt(document.getElementById("timerInput").value) || 1;  // Default a 1 minuto se non valido
+        timeLeft = minutes * 60 * 1000;  // Converti minuti in millisecondi
+        timerFill.style.width = "100%";
+        updateCountdownDisplay();
+    }
+
+    // Funzione per aggiornare il conto alla rovescia con millisecondi
+    function updateCountdownDisplay() {
+        const milliseconds = timeLeft % 1000;
+        const seconds = Math.floor(timeLeft / 1000) % 60;
+        const minutes = Math.floor(timeLeft / 60000);
+        countdownDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(3, '0')}`;
+    }
+
+    // Event listener per il bottone Play
+    document.getElementById("playButton").addEventListener("click", function () {
+        updateTimerDuration();  // Aggiorna la durata prima di avviare il timer
+        clearInterval(timerInterval);
+        lastUpdate = Date.now(); // Resetta il tempo
+        timerInterval = setInterval(function () {
+            const now = Date.now();
+            const delta = now - lastUpdate;
+            lastUpdate = now;
+            timeLeft -= delta;
+
+            // Calcola la larghezza della barra di avanzamento
+            timerFill.style.width = `${(timeLeft / (parseInt(document.getElementById("timerInput").value) * 60 * 1000)) * 100}%`;
+            updateCountdownDisplay();
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                countdownDisplay.textContent = "00:00:000";
+            }
+        }, 10);  // Aggiorna ogni 10 millisecondi
+    });
+
+    // Event listener per il bottone Pausa
+    document.getElementById("pauseButton").addEventListener("click", function () {
+        clearInterval(timerInterval);
+    });
+
+    // Event listener per il bottone Stop
+    document.getElementById("stopButton").addEventListener("click", function () {
+        clearInterval(timerInterval);
+        timeLeft = 60 * 1000;  // Reset a 1 minuto in millisecondi
+        timerFill.style.width = "100%";
+        updateCountdownDisplay();
+    });
+
+    // Aggiornamento dell'orologio digitale ogni secondo
+    setInterval(updateDigitalClock, 1000);
+    updateDate();
+</script>
+
+</body>
+</html>
+
